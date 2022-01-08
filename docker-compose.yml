@@ -6,6 +6,37 @@ services:
       - "5000:5000"
     links:
       - db
+    networks:
+      - app
  
   db:
     build: ./db
+    networks:
+      - app
+
+  frontend:
+    build: ./fuel-stations
+    ports:
+      - "8080:8080"
+    links:
+      - web
+    networks:
+      - app
+
+  nginx:
+    build: ./nginx
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  data-volume:
+    driver: local

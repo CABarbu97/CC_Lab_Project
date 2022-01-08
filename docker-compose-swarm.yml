@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+
+  web:
+    image: cabarbu97/cc_lab_project_web:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      - app
+
+  frontend:
+    image: cabarbu97/cc_lab_project_frontend:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+    ports:
+      - "8082:8080"
+    depends_on:
+      - web
+    networks:
+      - app
+
+  db:
+    image: cabarbu97/cc_lab_project_db:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - app
+
+  nginx:
+    image: cabarbu97/cc_lab_project_nginx:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    networks:
+      - app
+
+  visualizer:
+    image: dockersamples/visualizer:latest
+    ports:
+      - 8081:8080
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - app
+
+networks:
+  app:
+    driver: overlay
+
+volumes:
+  data-volume:
+    driver: local
